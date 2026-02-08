@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: smartcloud
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smartcloud
+    username: smartcloud
+    password: smartcloud123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  security:
+    user:
+      name: admin
+      password: admin
+      roles: ADMIN
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: smartcloud
+  secret-key: smartcloud123
+  bucket: smartcloud-files
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN
