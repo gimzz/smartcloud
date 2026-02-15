@@ -14,32 +14,34 @@ public class FileObject {
     @Column(name = "original_filename", nullable = false, length = 255)
     private String originalFilename;
 
-    @Column(name = "stored_filename", nullable = false)
+    @Column(name = "stored_filename", nullable = false, length = 500)
     private String storedFilename;
 
-    @Column(name = "content_type", nullable = false)
+    @Column(name = "content_type", nullable = false, length = 100)
     private String contentType;
 
     @Column(name = "size", nullable = false)
     private Long size;
 
-    @Column(name = "bucket", nullable = false)
+    @Column(name = "bucket", nullable = false, length = 100)
     private String bucket;
 
-    @Column(name = "object_key", nullable = false, unique = true)
+    @Column(name = "object_key", nullable = false, unique = true, length = 500)
     private String objectKey;
 
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt;
 
+    
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
 
-    protected FileObject() {
+      protected FileObject() {
     }
 
-    public FileObject(String originalFilename,String storedFilename,String contentType, Long size,String bucket, String objectKey, User owner ) {
+    public FileObject(String originalFilename, String storedFilename, String contentType, 
+        Long size, String bucket, String objectKey, User owner) {
         this.originalFilename = originalFilename;
         this.storedFilename = storedFilename;
         this.contentType = contentType;
@@ -53,6 +55,10 @@ public class FileObject {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getOriginalFilename() {
@@ -117,5 +123,11 @@ public class FileObject {
 
     public void setOwner(User owner) {
         this.owner = owner;
+    }
+
+    @Override
+    public String toString() {
+        return "FileObject{id=" + id + ", objectKey='" + objectKey + "', ownerId="
+                + (owner != null ? owner.getId() : null) + "}";
     }
 }
