@@ -48,3 +48,7 @@ logging:
   level:
     org.springframework.security: INFO
     org.hibernate.SQL: WARN
+
+jwt:
+  secret: "TIyVXRbgqMnEyJCb/bfwansrmO5YE/IruOx3Ne0w0to="
+  expiration-ms: 86400000

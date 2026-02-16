@@ -100,4 +100,10 @@ public class UserService {
         return userRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("User not found"));
     }
+
+    public User getEntityByUsername(String username) {
+    return userRepository.findByUsernameIgnoreCase(username)
+        .orElseThrow(() -> new NotFoundException("User not found"));
+}
+
 }
