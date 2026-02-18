@@ -29,6 +29,10 @@ spring:
       password: admin
       roles: ADMIN
 
+jwt:
+  secret: "TIyVXRbgqMnEyJCb/bfwansrmO5YE/IruOx3Ne0w0to="
+  expiration-ms: 86400000   
+
 minio:
   endpoint: http://localhost:9000
   access-key: smartcloud
@@ -48,7 +52,3 @@ logging:
   level:
     org.springframework.security: INFO
     org.hibernate.SQL: WARN
-
-jwt:
-  secret: "TIyVXRbgqMnEyJCb/bfwansrmO5YE/IruOx3Ne0w0to="
-  expiration-ms: 86400000
