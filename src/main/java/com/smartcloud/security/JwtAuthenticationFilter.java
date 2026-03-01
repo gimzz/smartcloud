@@ -11,11 +11,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
     private final UserDetailsServiceImpl userDetailsService;
+        private final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     public JwtAuthenticationFilter(
             JwtTokenProvider tokenProvider,
@@ -36,8 +39,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
 
-            if (tokenProvider.validateToken(token)) {
-                String username = tokenProvider.getUsernameFromToken(token);
+                        if (tokenProvider.validateToken(token)) {
+                                String username = tokenProvider.getUsernameFromToken(token);
+                                log.debug("JWT validated for user={}", username);
 
                 var userDetails =
                         userDetailsService.loadUserByUsername(username);
@@ -55,6 +59,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
+                        } else {
+                                log.debug("Invalid JWT token");
             }
         }
 

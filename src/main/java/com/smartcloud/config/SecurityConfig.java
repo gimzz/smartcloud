@@ -3,6 +3,7 @@ package com.smartcloud.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +15,7 @@ import com.smartcloud.security.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
 @Bean
@@ -35,7 +37,8 @@ SecurityFilterChain filterChain(
             .requestMatchers(
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
-                "/api/auth/**"
+                "/api/auth/**",
+                "/api/users/register"
             ).permitAll()
             .anyRequest().authenticated()
         )
