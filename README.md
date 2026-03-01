@@ -24,30 +24,8 @@ MinIO es la opción de almacenamiento S3-compatible elegida en este proyecto por
 
 En resumen: MinIO nos da la API, la flexibilidad y la sencillez para implementar y probar las funciones de almacenamiento/serving sin atarnos a un proveedor en etapas tempranas.
 
-Arquitectura y flujo visual 
+Arquitectura 
 -------------------------------------
-
-
-Client
-  |
-  | (1) Subida (multipart / Base64 / URL)
-  v
-API (Spring Boot controllers)
-  |
-  | (2) Autenticación (JWT) / Validaciones
-  v
-Service Layer
-  |-- StorageService ---> MinIO (objetos: original + optimizados)
-  |-- DB (Postgres)  ---> Metadatos: File, FileVersion, AuditLog, StorageUsage
-  |-- CompressionService ---> (sync o encolar job)
-                     |
-                     v
-              Compression Worker
-                     |
-                     +--> Guarda versiones optimizadas en MinIO
-                     +--> Actualiza CompressionJob, StorageUsage, AuditLog en DB
-
-
 
 Flujo numerado (típico)
 1. Cliente sube archivo al endpoint `/api/files` (autenticado).
