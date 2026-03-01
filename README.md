@@ -93,7 +93,7 @@ Uso rápido: Swagger y endpoints
 --------------------------------
 
 - Swagger UI (documentación interactiva): http://localhost:8080/swagger-ui/index.html
-  - Abre esa URL, autoriza con Bearer <JWT> (Authorize) y prueba los endpoints.
+  -Abre esa URL, autoriza con Bearer <JWT> (Authorize) y prueba los endpoints.
 
 Endpoints principales (qué hacen)
 ---------------------------------
