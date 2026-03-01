@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -19,12 +19,12 @@ services:
     environment:
       MINIO_ROOT_USER: smartcloud
       MINIO_ROOT_PASSWORD: smartcloud123
+    command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9100:9000"
+      - "9101:9001"
     volumes:
       - minio_data:/data
-    command: server /data --console-address ":9001"
 
 volumes:
   postgres_data:

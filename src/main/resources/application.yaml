@@ -34,7 +34,7 @@ jwt:
   expiration-ms: 86400000   
 
 minio:
-  endpoint: http://localhost:9000
+  endpoint: http://localhost:9100
   access-key: smartcloud
   secret-key: smartcloud123
   bucket: smartcloud-files
