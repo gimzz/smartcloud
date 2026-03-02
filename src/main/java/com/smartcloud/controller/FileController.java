@@ -4,16 +4,17 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.io.InputStream;
+
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
-
 import org.springframework.core.io.InputStreamResource;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.smartcloud.dto.FileListItemDto;
+import com.smartcloud.dto.FileResponseDto;
 import com.smartcloud.entity.FileObject;
 import com.smartcloud.entity.User;
 import com.smartcloud.http.HttpResponse;
@@ -41,28 +42,29 @@ public class FileController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> upload(
-        @RequestParam("file") MultipartFile file,
-        Principal principal
+            @RequestParam("file") MultipartFile file,
+            Principal principal
     ) throws Exception {
 
         User user = userService.getEntityByUsername(principal.getName());
         FileObject saved = storageService.upload(file, user);
 
-        java.util.Map<String, Object> response = new java.util.LinkedHashMap<>();
-        response.put("id", saved.getId());
-        response.put("originalFilename", saved.getOriginalFilename());
-        response.put("storedFilename", saved.getStoredFilename());
-        response.put("contentType", saved.getContentType());
-        response.put("size", saved.getSize());
-        response.put("downloadUrl", "/api/files/" + saved.getId() + "/download");
-
-        return HttpResponse.created(response);
+        return HttpResponse.created(
+                FileResponseDto.fromEntity(saved)
+        );
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> list(Principal principal) {
+    public ResponseEntity<Map<String, Object>> list(
+            Principal principal
+    ) {
         User user = userService.getEntityByUsername(principal.getName());
-        List<FileObject> files = fileObjectService.getByUser(user);
+
+        List<FileListItemDto> files = fileObjectService.getByUser(user)
+                .stream()
+                .map(FileListItemDto::fromEntity)
+                .toList();
+
         return HttpResponse.ok(files);
     }
 
@@ -82,7 +84,10 @@ public class FileController {
         InputStream is = storageService.download(file);
 
         return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=\"" + file.getOriginalFilename() + "\"")
+                .header(
+                        "Content-Disposition",
+                        "attachment; filename=\"" + file.getOriginalFilename() + "\""
+                )
                 .body(new InputStreamResource(is));
     }
 

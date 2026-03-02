@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.smartcloud.entity.FileObject;
 import com.smartcloud.entity.User;
+import com.smartcloud.exception.NotFoundException;
 import com.smartcloud.repository.FileObjectRepository;
 
 @Service
@@ -29,7 +30,7 @@ public class FileObjectService {
 
     public FileObject getById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("File not found"));
+                .orElseThrow(() -> new NotFoundException("File not found"));
     }
 
     public void delete(FileObject file) {
