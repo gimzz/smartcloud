@@ -20,9 +20,14 @@ import com.smartcloud.entity.User;
 import com.smartcloud.http.HttpResponse;
 import com.smartcloud.service.StorageService;
 import com.smartcloud.service.UserService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.smartcloud.service.FileObjectService;
 
 @RestController
+@Tag(name = "Archivos", description = "Gestión de archivos en el sistema")
 @RequestMapping("/api/files")
 public class FileController {
 
@@ -40,6 +45,7 @@ public class FileController {
         this.userService = userService;
     }
 
+    @Operation(summary = "Subir un archivo", description = "Permite a los usuarios subir un archivo al sistema. El archivo se asocia con el usuario que lo sube.")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> upload(
             @RequestParam("file") MultipartFile file,
@@ -54,6 +60,7 @@ public class FileController {
         );
     }
 
+    @Operation(summary = "Listar archivos", description = "Obtiene una lista de archivos asociados al usuario autenticado.")
     @GetMapping
     public ResponseEntity<Map<String, Object>> list(
             Principal principal
@@ -67,7 +74,7 @@ public class FileController {
 
         return HttpResponse.ok(files);
     }
-
+    @Operation(summary = "Descargar un archivo", description = "Permite a los usuarios descargar un archivo específico que les pertenece.")
     @GetMapping("/{id}/download")
     public ResponseEntity<?> download(
             @PathVariable Long id,
@@ -90,7 +97,7 @@ public class FileController {
                 )
                 .body(new InputStreamResource(is));
     }
-
+    @Operation(summary = "Eliminar un archivo", description = "Permite a los usuarios eliminar un archivo específico que les pertenece.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> delete(
             @PathVariable Long id,
