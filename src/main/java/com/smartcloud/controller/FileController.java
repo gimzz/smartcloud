@@ -6,6 +6,7 @@ import java.util.Map;
 import java.io.InputStream;
 import org.springframework.data.domain.Page;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -80,29 +81,32 @@ public ResponseEntity<Map<String, Object>> list(
     return HttpResponse.ok(files);
 }
     
-    @Operation(summary = "Descargar un archivo", description = "Permite a los usuarios descargar un archivo específico que les pertenece.")
-    @GetMapping("/{id}/download")
-    public ResponseEntity<?> download(
-            @PathVariable Long id,
-            Principal principal
-    ) throws Exception {
+  @Operation(summary = "Descargar un archivo", description = "Permite a los usuarios descargar un archivo específico que les pertenece.")
+@GetMapping("/{id}/download")
+public ResponseEntity<InputStreamResource> download(
+        @PathVariable Long id,
+        Principal principal
+) throws Exception {
 
-        User user = userService.getEntityByUsername(principal.getName());
-        FileObject file = fileObjectService.getById(id);
+    User user = userService.getEntityByUsername(principal.getName());
+    FileObject file = fileObjectService.getById(id);
 
-        if (!file.getOwner().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
-        }
-
-        InputStream is = storageService.download(file);
-
-        return ResponseEntity.ok()
-                .header(
-                        "Content-Disposition",
-                        "attachment; filename=\"" + file.getOriginalFilename() + "\""
-                )
-                .body(new InputStreamResource(is));
+    if (!file.getOwner().getId().equals(user.getId())) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
     }
+
+    InputStream is = storageService.download(file);
+
+    return ResponseEntity.ok()
+            .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + file.getOriginalFilename() + "\""
+            )
+            .contentType(MediaType.parseMediaType(file.getContentType()))
+            .contentLength(file.getSizeOriginal())
+            .body(new InputStreamResource(is));
+}
+
     @Operation(summary = "Eliminar un archivo", description = "Permite a los usuarios eliminar un archivo específico que les pertenece.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> delete(
