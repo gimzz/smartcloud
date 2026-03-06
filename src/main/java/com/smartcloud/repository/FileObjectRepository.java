@@ -9,5 +9,5 @@ import com.smartcloud.entity.User;
 public interface FileObjectRepository extends JpaRepository<FileObject, Long> {
     
     Page<FileObject> findByOwner(User owner, Pageable pageable);
-    Optional<FileObject> findByObjectKey(String objectKey);
+    Optional<FileObject> findByObjectKeyOriginal(String objectKeyOriginal);
 }
