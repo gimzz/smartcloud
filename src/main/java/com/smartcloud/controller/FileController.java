@@ -4,7 +4,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.io.InputStream;
-
+import org.springframework.data.domain.Page;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.core.io.InputStreamResource;
@@ -61,19 +61,25 @@ public class FileController {
     }
 
     @Operation(summary = "Listar archivos", description = "Obtiene una lista de archivos asociados al usuario autenticado.")
-    @GetMapping
-    public ResponseEntity<Map<String, Object>> list(
-            Principal principal
-    ) {
-        User user = userService.getEntityByUsername(principal.getName());
+ @GetMapping
+public ResponseEntity<Map<String, Object>> list(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        Principal principal
+) {
 
-        List<FileListItemDto> files = fileObjectService.getByUser(user)
-                .stream()
-                .map(FileListItemDto::fromEntity)
-                .toList();
+    User user = userService.getEntityByUsername(principal.getName());
 
-        return HttpResponse.ok(files);
-    }
+    Page<FileObject> filesPage = fileObjectService.getByUser(user, page, size);
+
+    List<FileListItemDto> files = filesPage
+            .stream()
+            .map(FileListItemDto::fromEntity)
+            .toList();
+
+    return HttpResponse.ok(files);
+}
+    
     @Operation(summary = "Descargar un archivo", description = "Permite a los usuarios descargar un archivo específico que les pertenece.")
     @GetMapping("/{id}/download")
     public ResponseEntity<?> download(
