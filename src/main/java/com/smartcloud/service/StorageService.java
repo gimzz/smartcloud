@@ -50,7 +50,6 @@ public class StorageService {
 
         FileObject metadata = new FileObject(
                 file.getOriginalFilename(),
-                objectKey,
                 file.getContentType(),
                 file.getSize(),
                 bucket,
@@ -82,21 +81,36 @@ public class StorageService {
         return "users/" + (userId != null ? userId : "anonymous") + "/" + UUID.randomUUID() + "-" + cleanName;
     }
 
-    public java.io.InputStream download(FileObject file) throws Exception {
-        return minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket(file.getBucket())
-                        .object(file.getObjectKey())
-                        .build()
-        );
-    }
+    public InputStream download(FileObject file) throws Exception {
 
-    public void delete(FileObject file) throws Exception {
+    String key = file.getObjectKeyOptimized() != null
+            ? file.getObjectKeyOptimized()
+            : file.getObjectKeyOriginal();
+
+    return minioClient.getObject(
+            GetObjectArgs.builder()
+                    .bucket(file.getBucket())
+                    .object(key)
+                    .build()
+    );
+}
+
+   public void delete(FileObject file) throws Exception {
+
+    minioClient.removeObject(
+            RemoveObjectArgs.builder()
+                    .bucket(file.getBucket())
+                    .object(file.getObjectKeyOriginal())
+                    .build()
+    );
+
+    if (file.getObjectKeyOptimized() != null) {
         minioClient.removeObject(
                 RemoveObjectArgs.builder()
                         .bucket(file.getBucket())
-                        .object(file.getObjectKey())
+                        .object(file.getObjectKeyOptimized())
                         .build()
         );
     }
+}
 }
