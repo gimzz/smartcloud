@@ -1,108 +1,78 @@
 package com.smartcloud.dto;
 
-import java.io.File;
 import java.time.LocalDateTime;
+
 import com.smartcloud.entity.FileObject;
+import com.smartcloud.entity.FileStatus;
 
 public class FileResponseDto {
+
     private Long id;
     private String originalFilename;
-    private String storedFilename;
     private String contentType;
-    private Long size;
-    private String bucket;
-    private String objectKey;
+
+    private Long sizeOriginal;
+    private Long sizeOptimized;
+
+    private FileStatus status;
+
     private LocalDateTime uploadedAt;
 
-    public FileResponseDto() {
-    }
+    private String downloadUrl;
 
-    public FileResponseDto(Long id, String originalFilename, String storedFilename, String contentType, Long size,
-            String bucket, String objectKey, LocalDateTime uploadedAt) {
+    public FileResponseDto() {}
+
+    public FileResponseDto(
+            Long id,
+            String originalFilename,
+            String contentType,
+            Long sizeOriginal,
+            Long sizeOptimized,
+            FileStatus status,
+            LocalDateTime uploadedAt,
+            String downloadUrl
+    ) {
         this.id = id;
         this.originalFilename = originalFilename;
-        this.storedFilename = storedFilename;
         this.contentType = contentType;
-        this.size = size;
-        this.bucket = bucket;
-        this.objectKey = objectKey;
+        this.sizeOriginal = sizeOriginal;
+        this.sizeOptimized = sizeOptimized;
+        this.status = status;
         this.uploadedAt = uploadedAt;
+        this.downloadUrl = downloadUrl;
     }
 
-    public static FileResponseDto fromEntity(FileObject fileObject) {
+    public static FileResponseDto fromEntity(FileObject file) {
+
+        Long finalSize = file.getSizeOptimized() != null
+                ? file.getSizeOptimized()
+                : file.getSizeOriginal();
+
         return new FileResponseDto(
-                fileObject.getId(),
-                fileObject.getOriginalFilename(),
-                fileObject.getStoredFilename(),
-                fileObject.getContentType(),
-                fileObject.getSize(),
-                fileObject.getBucket(),
-                fileObject.getObjectKey(),
-                fileObject.getUploadedAt());
+                file.getId(),
+                file.getOriginalFilename(),
+                file.getContentType(),
+                file.getSizeOriginal(),
+                file.getSizeOptimized(),
+                file.getStatus(),
+                file.getUploadedAt(),
+                "/api/files/" + file.getId() + "/download"
+        );
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getOriginalFilename() { return originalFilename; }
 
-    public String getOriginalFilename() {
-        return originalFilename;
-    }
+    public String getContentType() { return contentType; }
 
-    public void setOriginalFilename(String originalFilename) {
-        this.originalFilename = originalFilename;
-    }
+    public Long getSizeOriginal() { return sizeOriginal; }
 
-    public String getStoredFilename() {
-        return storedFilename;
-    }
+    public Long getSizeOptimized() { return sizeOptimized; }
 
-    public void setStoredFilename(String storedFilename) {
-        this.storedFilename = storedFilename;
-    }
+    public FileStatus getStatus() { return status; }
 
-    public String getContentType() {
-        return contentType;
-    }
+    public LocalDateTime getUploadedAt() { return uploadedAt; }
 
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-
-    public Long getSize() {
-        return size;
-    }
-
-    public void setSize(Long size) {
-        this.size = size;
-    }
-
-    public String getBucket() {
-        return bucket;
-    }
-
-    public void setBucket(String bucket) {
-        this.bucket = bucket;
-    }
-
-    public String getObjectKey() {
-        return objectKey;
-    }
-
-    public void setObjectKey(String objectKey) {
-        this.objectKey = objectKey;
-    }
-
-    public LocalDateTime getUploadedAt() {
-        return uploadedAt;
-    }
-
-    public void setUploadedAt(LocalDateTime uploadedAt) {
-        this.uploadedAt = uploadedAt;
-    }
-
+    public String getDownloadUrl() { return downloadUrl; }
 }

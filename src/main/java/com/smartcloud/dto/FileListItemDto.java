@@ -1,6 +1,7 @@
 package com.smartcloud.dto;
 
 import java.time.LocalDateTime;
+
 import com.smartcloud.entity.FileObject;
 
 public class FileListItemDto {
@@ -31,10 +32,15 @@ public class FileListItemDto {
     }
 
     public static FileListItemDto fromEntity(FileObject file) {
+
+        Long size = file.getSizeOptimized() != null
+                ? file.getSizeOptimized()
+                : file.getSizeOriginal();
+
         return new FileListItemDto(
                 file.getId(),
                 file.getOriginalFilename(),
-                file.getSize(),
+                size,
                 file.getContentType(),
                 file.getUploadedAt(),
                 "/api/files/" + file.getId() + "/download"
@@ -42,20 +48,14 @@ public class FileListItemDto {
     }
 
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getFilename() { return filename; }
-    public void setFilename(String filename) { this.filename = filename; }
 
     public Long getSize() { return size; }
-    public void setSize(Long size) { this.size = size; }
 
     public String getContentType() { return contentType; }
-    public void setContentType(String contentType) { this.contentType = contentType; }
 
     public LocalDateTime getUploadedAt() { return uploadedAt; }
-    public void setUploadedAt(LocalDateTime uploadedAt) { this.uploadedAt = uploadedAt; }
 
     public String getDownloadUrl() { return downloadUrl; }
-    public void setDownloadUrl(String downloadUrl) { this.downloadUrl = downloadUrl; }
 }
