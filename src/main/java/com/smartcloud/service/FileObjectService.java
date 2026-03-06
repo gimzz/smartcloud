@@ -1,9 +1,10 @@
 package com.smartcloud.service;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import com.smartcloud.entity.FileObject;
 import com.smartcloud.entity.User;
@@ -24,8 +25,8 @@ public class FileObjectService {
         return repository.save(fileObject);
     }
 
-    public List<FileObject> getByUser(User user) {
-        return repository.findByOwner(user);
+    public Page<FileObject> getByUser(User user, int page, int size) {
+        return repository.findByOwner(user, PageRequest.of(page, size));
     }
 
     public FileObject getById(Long id) {
