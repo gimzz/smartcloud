@@ -23,8 +23,7 @@ public class AuthController {
     public AuthController(
             UserService userService,
             JwtTokenProvider jwtTokenProvider,
-            PasswordEncoder passwordEncoder
-    ) {
+            PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;

@@ -14,103 +14,111 @@ import java.util.UUID;
 @Service
 public class StorageService {
 
-    private final MinioClient minioClient;
-    private final String bucket;
-    private final FileObjectService fileObjectService;
+        private final MinioClient minioClient;
+        private final String bucket;
+        private final FileObjectService fileObjectService;
+        private final FileOptimizationService fileOptimizationService;
 
-    public StorageService(
-            MinioClient minioClient,
-            FileObjectService fileObjectService,
-            @Value("${minio.bucket}") String bucket
-    ) {
-        this.minioClient = minioClient;
-        this.fileObjectService = fileObjectService;
-        this.bucket = bucket;
-    }
-
-    public FileObject upload(
-            MultipartFile file,
-            User user
-    ) throws Exception {
-
-        ensureBucketExists();
-
-        String objectKey = buildObjectKey(user.getId(), file.getOriginalFilename());
-
-        try (InputStream is = file.getInputStream()) {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(objectKey)
-                            .stream(is, file.getSize(), -1)
-                            .contentType(file.getContentType())
-                            .build()
-            );
+        public StorageService(
+                        MinioClient minioClient,
+                        FileObjectService fileObjectService,
+                        FileOptimizationService fileOptimizationService,
+                        @Value("${minio.bucket}") String bucket) {
+                this.minioClient = minioClient;
+                this.fileObjectService = fileObjectService;
+                this.fileOptimizationService = fileOptimizationService;
+                this.bucket = bucket;
         }
 
-        FileObject metadata = new FileObject(
-                file.getOriginalFilename(),
-                file.getContentType(),
-                file.getSize(),
-                bucket,
-                objectKey,
-                user
-        );
+        public FileObject upload(
+                        MultipartFile file,
+                        User user) throws Exception {
 
-        return fileObjectService.save(metadata);
-    }
+                ensureBucketExists();
 
-    private void ensureBucketExists() throws Exception {
-        boolean exists = minioClient.bucketExists(
-                BucketExistsArgs.builder()
-                        .bucket(bucket)
-                        .build()
-        );
+                String objectKey = buildObjectKey(user.getId(), file.getOriginalFilename());
 
-        if (!exists) {
-            minioClient.makeBucket(
-                    MakeBucketArgs.builder()
-                            .bucket(bucket)
-                            .build()
-            );
+                try (InputStream is = file.getInputStream()) {
+                        minioClient.putObject(
+                                        PutObjectArgs.builder()
+                                                        .bucket(bucket)
+                                                        .object(objectKey)
+                                                        .stream(is, file.getSize(), -1)
+                                                        .contentType(file.getContentType())
+                                                        .build());
+                }
+
+                FileObject metadata = new FileObject(
+                                file.getOriginalFilename(),
+                                file.getContentType(),
+                                file.getSize(),
+                                bucket,
+                                objectKey,
+                                user);
+
+                FileObject saved = fileObjectService.save(metadata);
+
+                try {
+                        fileOptimizationService.optimize(saved);
+                } catch (Exception e) {
+                        e.printStackTrace();
+                }
+
+                return saved;
         }
-    }
 
-    private String buildObjectKey(Long userId, String filename) {
-        String cleanName = filename == null ? "file" : filename.replaceAll("\\s+", "_");
-        return "users/" + (userId != null ? userId : "anonymous") + "/" + UUID.randomUUID() + "-" + cleanName;
-    }
+        private void ensureBucketExists() throws Exception {
+                boolean exists = minioClient.bucketExists(
+                                BucketExistsArgs.builder()
+                                                .bucket(bucket)
+                                                .build());
 
-    public InputStream download(FileObject file) throws Exception {
+                if (!exists) {
+                        minioClient.makeBucket(
+                                        MakeBucketArgs.builder()
+                                                        .bucket(bucket)
+                                                        .build());
+                }
+        }
 
-    String key = file.getObjectKeyOptimized() != null
-            ? file.getObjectKeyOptimized()
-            : file.getObjectKeyOriginal();
+        private String buildObjectKey(Long userId, String filename) {
+                String cleanName = filename == null ? "file" : filename.replaceAll("\\s+", "_");
 
-    return minioClient.getObject(
-            GetObjectArgs.builder()
-                    .bucket(file.getBucket())
-                    .object(key)
-                    .build()
-    );
-}
+                return "users/"
+                                + (userId != null ? userId : "anonymous")
+                                + "/"
+                                + UUID.randomUUID()
+                                + "-"
+                                + cleanName;
+        }
 
-   public void delete(FileObject file) throws Exception {
+        public InputStream download(FileObject file) throws Exception {
 
-    minioClient.removeObject(
-            RemoveObjectArgs.builder()
-                    .bucket(file.getBucket())
-                    .object(file.getObjectKeyOriginal())
-                    .build()
-    );
+                String key = file.getObjectKeyOptimized() != null
+                                ? file.getObjectKeyOptimized()
+                                : file.getObjectKeyOriginal();
 
-    if (file.getObjectKeyOptimized() != null) {
-        minioClient.removeObject(
-                RemoveObjectArgs.builder()
-                        .bucket(file.getBucket())
-                        .object(file.getObjectKeyOptimized())
-                        .build()
-        );
-    }
-}
+                return minioClient.getObject(
+                                GetObjectArgs.builder()
+                                                .bucket(file.getBucket())
+                                                .object(key)
+                                                .build());
+        }
+
+        public void delete(FileObject file) throws Exception {
+
+                minioClient.removeObject(
+                                RemoveObjectArgs.builder()
+                                                .bucket(file.getBucket())
+                                                .object(file.getObjectKeyOriginal())
+                                                .build());
+
+                if (file.getObjectKeyOptimized() != null) {
+                        minioClient.removeObject(
+                                        RemoveObjectArgs.builder()
+                                                        .bucket(file.getBucket())
+                                                        .object(file.getObjectKeyOptimized())
+                                                        .build());
+                }
+        }
 }

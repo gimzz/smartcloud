@@ -20,7 +20,8 @@ public class FileResponseDto {
 
     private String downloadUrl;
 
-    public FileResponseDto() {}
+    public FileResponseDto() {
+    }
 
     public FileResponseDto(
             Long id,
@@ -30,8 +31,7 @@ public class FileResponseDto {
             Long sizeOptimized,
             FileStatus status,
             LocalDateTime uploadedAt,
-            String downloadUrl
-    ) {
+            String downloadUrl) {
         this.id = id;
         this.originalFilename = originalFilename;
         this.contentType = contentType;
@@ -56,23 +56,38 @@ public class FileResponseDto {
                 file.getSizeOptimized(),
                 file.getStatus(),
                 file.getUploadedAt(),
-                "/api/files/" + file.getId() + "/download"
-        );
+                "/api/files/" + file.getId() + "/download");
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getOriginalFilename() { return originalFilename; }
+    public String getOriginalFilename() {
+        return originalFilename;
+    }
 
-    public String getContentType() { return contentType; }
+    public String getContentType() {
+        return contentType;
+    }
 
-    public Long getSizeOriginal() { return sizeOriginal; }
+    public Long getSizeOriginal() {
+        return sizeOriginal;
+    }
 
-    public Long getSizeOptimized() { return sizeOptimized; }
+    public Long getSizeOptimized() {
+        return sizeOptimized;
+    }
 
-    public FileStatus getStatus() { return status; }
+    public FileStatus getStatus() {
+        return status;
+    }
 
-    public LocalDateTime getUploadedAt() { return uploadedAt; }
+    public LocalDateTime getUploadedAt() {
+        return uploadedAt;
+    }
 
-    public String getDownloadUrl() { return downloadUrl; }
+    public String getDownloadUrl() {
+        return downloadUrl;
+    }
 }

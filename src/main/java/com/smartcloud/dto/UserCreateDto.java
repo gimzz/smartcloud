@@ -15,7 +15,8 @@ public class UserCreateDto {
     @NotBlank(message = "password is required")
     private String password;
 
-    public UserCreateDto() {}
+    public UserCreateDto() {
+    }
 
     public UserCreateDto(String username, String email, String password) {
         this.username = username;

@@ -19,8 +19,7 @@ public class HttpResponse {
     private static ResponseEntity<Map<String, Object>> build(
             HttpStatus status,
             Object data,
-            String type
-    ) {
+            String type) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());
         body.put("status", status.value());
@@ -30,12 +29,12 @@ public class HttpResponse {
     }
 
     public static ResponseEntity<Map<String, Object>> noContent() {
-    Map<String, Object> body = new LinkedHashMap<>();
-    body.put("timestamp", Instant.now().toString());
-    body.put("status", HttpStatus.NO_CONTENT.value());
-    body.put("type", "success");
-    body.put("data", null);
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).body(body);
-}
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", Instant.now().toString());
+        body.put("status", HttpStatus.NO_CONTENT.value());
+        body.put("type", "success");
+        body.put("data", null);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(body);
+    }
 
 }

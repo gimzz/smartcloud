@@ -19,8 +19,7 @@ public class JwtTokenProvider {
 
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration-ms}") long expirationMs
-    ) {
+            @Value("${jwt.expiration-ms}") long expirationMs) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
         this.expirationMs = expirationMs;
     }
@@ -50,9 +49,9 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parse(token);
+                    .verifyWith(secretKey)
+                    .build()
+                    .parse(token);
             return true;
         } catch (Exception ex) {
             return false;

@@ -22,10 +22,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throws UsernameNotFoundException {
 
         User user = userRepository
-            .findByUsernameIgnoreCase(username)
-            .orElseThrow(() ->
-                new UsernameNotFoundException("User not found")
-            );
+                .findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return new UserPrincipal(user);
     }

@@ -25,8 +25,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository,
-                       RoleRepository roleRepository,
-                       PasswordEncoder passwordEncoder) {
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -46,20 +46,16 @@ public class UserService {
         }
 
         Role role = roleRepository.findByName("USER")
-            .orElseThrow(() ->
-                new MisconfiguredApplicationException(
-                    "Default role 'USER' not found; please seed roles"
-                )
-            );
+                .orElseThrow(() -> new MisconfiguredApplicationException(
+                        "Default role 'USER' not found; please seed roles"));
 
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
 
         User user = new User(
-            username,
-            email,
-            encodedPassword,
-            role
-        );
+                username,
+                email,
+                encodedPassword,
+                role);
 
         User saved = userRepository.save(user);
 
@@ -72,16 +68,16 @@ public class UserService {
 
     public UserResponseDto getByUsername(String username) {
         User user = userRepository.findByUsernameIgnoreCase(username)
-            .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         return UserResponseDto.fromEntity(user);
     }
 
     public List<UserResponseDto> getAll() {
         return userRepository.findAll()
-            .stream()
-            .map(UserResponseDto::fromEntity)
-            .toList();
+                .stream()
+                .map(UserResponseDto::fromEntity)
+                .toList();
     }
 
     public void disableById(Long id) {
@@ -98,12 +94,12 @@ public class UserService {
 
     protected User getEntityById(Long id) {
         return userRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     public User getEntityByUsername(String username) {
-    return userRepository.findByUsernameIgnoreCase(username)
-        .orElseThrow(() -> new NotFoundException("User not found"));
-}
+        return userRepository.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+    }
 
 }

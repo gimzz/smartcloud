@@ -32,98 +32,95 @@ import com.smartcloud.service.FileObjectService;
 @RequestMapping("/api/files")
 public class FileController {
 
-    private final StorageService storageService;
-    private final FileObjectService fileObjectService;
-    private final UserService userService;
+        private final StorageService storageService;
+        private final FileObjectService fileObjectService;
+        private final UserService userService;
 
-    public FileController(
-            StorageService storageService,
-            FileObjectService fileObjectService,
-            UserService userService
-    ) {
-        this.storageService = storageService;
-        this.fileObjectService = fileObjectService;
-        this.userService = userService;
-    }
-
-    @Operation(summary = "Subir un archivo", description = "Permite a los usuarios subir un archivo al sistema. El archivo se asocia con el usuario que lo sube.")
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String, Object>> upload(
-            @RequestParam("file") MultipartFile file,
-            Principal principal
-    ) throws Exception {
-
-        User user = userService.getEntityByUsername(principal.getName());
-        FileObject saved = storageService.upload(file, user);
-
-        return HttpResponse.created(
-                FileResponseDto.fromEntity(saved)
-        );
-    }
-
-    @Operation(summary = "Listar archivos", description = "Obtiene una lista de archivos asociados al usuario autenticado.")
- @GetMapping
-public ResponseEntity<Map<String, Object>> list(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size,
-        Principal principal
-) {
-
-    User user = userService.getEntityByUsername(principal.getName());
-
-    Page<FileObject> filesPage = fileObjectService.getByUser(user, page, size);
-
-    List<FileListItemDto> files = filesPage
-            .stream()
-            .map(FileListItemDto::fromEntity)
-            .toList();
-
-    return HttpResponse.ok(files);
-}
-    
-  @Operation(summary = "Descargar un archivo", description = "Permite a los usuarios descargar un archivo específico que les pertenece.")
-@GetMapping("/{id}/download")
-public ResponseEntity<InputStreamResource> download(
-        @PathVariable Long id,
-        Principal principal
-) throws Exception {
-
-    User user = userService.getEntityByUsername(principal.getName());
-    FileObject file = fileObjectService.getById(id);
-
-    if (!file.getOwner().getId().equals(user.getId())) {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
-    }
-
-    InputStream is = storageService.download(file);
-
-    return ResponseEntity.ok()
-            .header(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + file.getOriginalFilename() + "\""
-            )
-            .contentType(MediaType.parseMediaType(file.getContentType()))
-            .contentLength(file.getSizeOriginal())
-            .body(new InputStreamResource(is));
-}
-
-    @Operation(summary = "Eliminar un archivo", description = "Permite a los usuarios eliminar un archivo específico que les pertenece.")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> delete(
-            @PathVariable Long id,
-            Principal principal
-    ) throws Exception {
-
-        User user = userService.getEntityByUsername(principal.getName());
-        FileObject file = fileObjectService.getById(id);
-
-        if (!file.getOwner().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        public FileController(
+                        StorageService storageService,
+                        FileObjectService fileObjectService,
+                        UserService userService) {
+                this.storageService = storageService;
+                this.fileObjectService = fileObjectService;
+                this.userService = userService;
         }
 
-        storageService.delete(file);
-        fileObjectService.delete(file);
+        @Operation(summary = "Subir un archivo", description = "Permite a los usuarios subir un archivo al sistema. El archivo se asocia con el usuario que lo sube.")
+        @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        public ResponseEntity<Map<String, Object>> upload(
+                        @RequestParam("file") MultipartFile file,
+                        Principal principal) throws Exception {
 
-        return HttpResponse.noContent();
-    }
+                User user = userService.getEntityByUsername(principal.getName());
+                FileObject saved = storageService.upload(file, user);
+
+                return HttpResponse.created(
+                                FileResponseDto.fromEntity(saved));
+        }
+
+        @Operation(summary = "Listar archivos", description = "Obtiene una lista de archivos asociados al usuario autenticado.")
+        @GetMapping
+        public ResponseEntity<Map<String, Object>> list(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size,
+                        Principal principal) {
+
+                User user = userService.getEntityByUsername(principal.getName());
+
+                Page<FileObject> filesPage = fileObjectService.getByUser(user, page, size);
+
+                List<FileListItemDto> files = filesPage
+                                .stream()
+                                .map(FileListItemDto::fromEntity)
+                                .toList();
+
+                return HttpResponse.ok(files);
+        }
+
+        @Operation(summary = "Descargar un archivo", description = "Permite a los usuarios descargar un archivo específico que les pertenece.")
+        @GetMapping("/{id}/download")
+        public ResponseEntity<InputStreamResource> download(
+                        @PathVariable Long id,
+                        Principal principal) throws Exception {
+
+                User user = userService.getEntityByUsername(principal.getName());
+                FileObject file = fileObjectService.getById(id);
+
+                if (!file.getOwner().getId().equals(user.getId())) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+                }
+
+                InputStream is = storageService.download(file);
+
+                long size = file.getSizeOptimized() != null
+                                ? file.getSizeOptimized()
+                                : file.getSizeOriginal();
+
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION,
+                                                "attachment; filename=\"" + file.getOriginalFilename() + "\"")
+                                                .header(HttpHeaders.CACHE_CONTROL,"no-cache")
+                                .contentType(MediaType.parseMediaType(file.getContentType()))
+                                .contentLength(size)
+                                .body(new InputStreamResource(is));
+        }
+
+        @Operation(summary = "Eliminar un archivo", description = "Permite a los usuarios eliminar un archivo específico que les pertenece.")
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Map<String, Object>> delete(
+                        @PathVariable Long id,
+                        Principal principal) throws Exception {
+
+                User user = userService.getEntityByUsername(principal.getName());
+                FileObject file = fileObjectService.getById(id);
+
+                if (!file.getOwner().getId().equals(user.getId())) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+                }
+
+                storageService.delete(file);
+                fileObjectService.delete(file);
+
+                return HttpResponse.noContent();
+        }
 }

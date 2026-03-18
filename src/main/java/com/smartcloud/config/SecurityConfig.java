@@ -18,39 +18,34 @@ import com.smartcloud.security.UserDetailsServiceImpl;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-@Bean
-SecurityFilterChain filterChain(
-        HttpSecurity http,
-        JwtTokenProvider tokenProvider,
-        UserDetailsServiceImpl userDetailsService
-) throws Exception {
+    @Bean
+    SecurityFilterChain filterChain(
+            HttpSecurity http,
+            JwtTokenProvider tokenProvider,
+            UserDetailsServiceImpl userDetailsService) throws Exception {
 
-    JwtAuthenticationFilter jwtFilter =
-            new JwtAuthenticationFilter(tokenProvider, userDetailsService);
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(tokenProvider, userDetailsService);
 
-    http
-        .csrf(csrf -> csrf.disable())
-        .httpBasic(basic -> basic.disable())
-        .formLogin(form -> form.disable())
+        http
+                .csrf(csrf -> csrf.disable())
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
 
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(
-                "/swagger-ui/**",
-                "/v3/api-docs/**",
-                "/api/auth/**",
-                "/api/users/register"
-            ).permitAll()
-            .anyRequest().authenticated()
-        )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/api/auth/**",
+                                "/api/users/register")
+                        .permitAll()
+                        .anyRequest().authenticated())
 
-        .addFilterBefore(
-            jwtFilter,
-            UsernamePasswordAuthenticationFilter.class
-        );
+                .addFilterBefore(
+                        jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
-    return http.build();
-}
-
+        return http.build();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

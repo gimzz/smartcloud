@@ -4,11 +4,9 @@ import java.time.LocalDateTime;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "file_object",
-       indexes = {
-           @Index(name = "idx_file_status", columnList = "status")
-       }
-)
+@Table(name = "file_object", indexes = {
+        @Index(name = "idx_file_status", columnList = "status")
+})
 
 public class FileObject {
 
@@ -84,7 +82,6 @@ public class FileObject {
         this.originalFilename = originalFilename;
     }
 
-
     public String getContentType() {
         return contentType;
     }
@@ -100,8 +97,6 @@ public class FileObject {
     public void setBucket(String bucket) {
         this.bucket = bucket;
     }
-
- 
 
     public LocalDateTime getUploadedAt() {
         return uploadedAt;

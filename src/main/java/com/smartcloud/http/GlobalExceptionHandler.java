@@ -19,8 +19,8 @@ import com.smartcloud.exception.MisconfiguredApplicationException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<Map<String,Object>> handleConflict(ConflictException ex, HttpServletRequest request) {
-        Map<String,Object> body = new LinkedHashMap<>();
+    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex, HttpServletRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());
         body.put("status", HttpStatus.CONFLICT.value());
         body.put("type", "danger");
@@ -30,8 +30,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Map<String,Object>> handleNotFound(NotFoundException ex, HttpServletRequest request) {
-        Map<String,Object> body = new LinkedHashMap<>();
+    public ResponseEntity<Map<String, Object>> handleNotFound(NotFoundException ex, HttpServletRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());
         body.put("status", HttpStatus.NOT_FOUND.value());
         body.put("type", "warning");
@@ -41,12 +41,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String,Object>> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
         String messages = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
-                .reduce((a,b) -> a + ", " + b)
+                .reduce((a, b) -> a + ", " + b)
                 .orElse("Validation failed");
-        Map<String,Object> body = new LinkedHashMap<>();
+        Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());
         body.put("status", HttpStatus.BAD_REQUEST.value());
         body.put("type", "warning");
@@ -54,9 +55,11 @@ public class GlobalExceptionHandler {
         body.put("path", request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
+
     @ExceptionHandler(MisconfiguredApplicationException.class)
-    public ResponseEntity<Map<String,Object>> handleMisconfigured(MisconfiguredApplicationException ex, HttpServletRequest request) {
-        Map<String,Object> body = new LinkedHashMap<>();
+    public ResponseEntity<Map<String, Object>> handleMisconfigured(MisconfiguredApplicationException ex,
+            HttpServletRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         body.put("type", "danger");
@@ -66,8 +69,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String,Object>> handleAll(Exception ex, HttpServletRequest request) {
-        Map<String,Object> body = new LinkedHashMap<>();
+    public ResponseEntity<Map<String, Object>> handleAll(Exception ex, HttpServletRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now().toString());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         body.put("type", "danger");

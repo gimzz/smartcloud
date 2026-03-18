@@ -17,16 +17,17 @@ public class RoleService {
 
     public Role getByName(String name) {
         return roleRepository.findByName(name)
-            .orElseThrow(() -> new com.smartcloud.exception.MisconfiguredApplicationException("Role '" + name + "' not found; please seed roles."));
+                .orElseThrow(() -> new com.smartcloud.exception.MisconfiguredApplicationException(
+                        "Role '" + name + "' not found; please seed roles."));
     }
 
     public List<Role> getAll() {
         return roleRepository.findAll();
     }
-    
+
     public Role createIfNotExists(String name) {
         return roleRepository.findByName(name)
-            .orElseGet(() -> roleRepository.save(new Role(name)));
+                .orElseGet(() -> roleRepository.save(new Role(name)));
     }
 
 }

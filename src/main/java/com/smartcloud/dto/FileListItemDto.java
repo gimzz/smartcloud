@@ -13,7 +13,8 @@ public class FileListItemDto {
     private LocalDateTime uploadedAt;
     private String downloadUrl;
 
-    public FileListItemDto() {}
+    public FileListItemDto() {
+    }
 
     public FileListItemDto(
             Long id,
@@ -21,8 +22,7 @@ public class FileListItemDto {
             Long size,
             String contentType,
             LocalDateTime uploadedAt,
-            String downloadUrl
-    ) {
+            String downloadUrl) {
         this.id = id;
         this.filename = filename;
         this.size = size;
@@ -43,19 +43,30 @@ public class FileListItemDto {
                 size,
                 file.getContentType(),
                 file.getUploadedAt(),
-                "/api/files/" + file.getId() + "/download"
-        );
+                "/api/files/" + file.getId() + "/download");
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getFilename() { return filename; }
+    public String getFilename() {
+        return filename;
+    }
 
-    public Long getSize() { return size; }
+    public Long getSize() {
+        return size;
+    }
 
-    public String getContentType() { return contentType; }
+    public String getContentType() {
+        return contentType;
+    }
 
-    public LocalDateTime getUploadedAt() { return uploadedAt; }
+    public LocalDateTime getUploadedAt() {
+        return uploadedAt;
+    }
 
-    public String getDownloadUrl() { return downloadUrl; }
+    public String getDownloadUrl() {
+        return downloadUrl;
+    }
 }

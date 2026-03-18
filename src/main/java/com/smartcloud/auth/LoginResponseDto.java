@@ -8,7 +8,6 @@ public class LoginResponseDto {
         this.token = token;
     }
 
-
     public String getToken() {
         return token;
     }

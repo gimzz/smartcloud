@@ -11,7 +11,8 @@ public class UserResponseDto {
     private boolean enabled;
     private LocalDateTime createdAt;
 
-    public UserResponseDto() {}
+    public UserResponseDto() {
+    }
 
     public UserResponseDto(Long id, String username, String email, boolean enabled, LocalDateTime createdAt) {
         this.id = id;
@@ -22,7 +23,8 @@ public class UserResponseDto {
     }
 
     public static UserResponseDto fromEntity(User u) {
-        if (u == null) return null;
+        if (u == null)
+            return null;
         return new UserResponseDto(u.getId(), u.getUsername(), u.getEmail(), u.isEnabled(), u.getCreatedAt());
     }
 

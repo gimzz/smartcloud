@@ -14,21 +14,18 @@ public class OpenApiConfig {
     @Bean
     OpenAPI openAPI() {
         return new OpenAPI()
-        .info(new io.swagger.v3.oas.models.info.Info()
-            .title("SmartCloud API")
-            .version("1.0")
-            .description("API para optimizar archivos y gestionar almacenamiento en la nube")
-        )
-            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
-            .components(
-                new Components().addSecuritySchemes(
-                    "bearerAuth",
-                    new SecurityScheme()
-                        .name("Authorization")
-                        .type(SecurityScheme.Type.HTTP)
-                        .scheme("bearer")
-                        .bearerFormat("JWT")
-                )
-            );
+                .info(new io.swagger.v3.oas.models.info.Info()
+                        .title("SmartCloud API")
+                        .version("1.0")
+                        .description("API para optimizar archivos y gestionar almacenamiento en la nube"))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .components(
+                        new Components().addSecuritySchemes(
+                                "bearerAuth",
+                                new SecurityScheme()
+                                        .name("Authorization")
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")));
     }
 }

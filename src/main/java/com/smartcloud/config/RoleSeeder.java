@@ -18,7 +18,6 @@ public class RoleSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         roleRepository.findByName("USER")
-            .orElseGet(() -> roleRepository.save(new Role("USER")));
+                .orElseGet(() -> roleRepository.save(new Role("USER")));
     }
 }
-
