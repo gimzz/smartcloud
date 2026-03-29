@@ -10,6 +10,7 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +23,7 @@ import io.minio.PutObjectArgs;
 
 import net.coobird.thumbnailator.Thumbnails;
 
-
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 
 @Service
 public class FileOptimizationService {
@@ -38,8 +36,7 @@ public class FileOptimizationService {
 
     public FileOptimizationService(
             MinioClient minioClient,
-            FileObjectService fileObjectService
-    ) {
+            FileObjectService fileObjectService) {
         this.minioClient = minioClient;
         this.fileObjectService = fileObjectService;
     }
@@ -49,13 +46,16 @@ public class FileOptimizationService {
 
         System.out.println("OPTIMIZANDO ARCHIVO: " + file.getOriginalFilename());
 
+        file.setStatus(FileStatus.PROCESSING);
+        fileObjectService.save(file);
+
         String type = file.getContentType();
-        if (type == null) return;
+        if (type == null)
+            return;
 
         if (type.startsWith("image")) {
             optimizeImageFile(file);
-        }
-        else if (type.equals("application/pdf")) {
+        } else if (type.equals("application/pdf")) {
             optimizePdf(file);
         }
     }
@@ -66,8 +66,7 @@ public class FileOptimizationService {
                 GetObjectArgs.builder()
                         .bucket(bucket)
                         .object(file.getObjectKeyOriginal())
-                        .build()
-        );
+                        .build());
 
         ByteArrayOutputStream optimizedOutput = optimizeImage(originalStream);
 
@@ -75,8 +74,10 @@ public class FileOptimizationService {
         long optimizedSize = optimizedBytes.length;
         long originalSize = file.getSizeOriginal();
 
-        if(optimizedSize >= originalSize) {
+        if (optimizedSize >= originalSize) {
             System.out.println(" No se optimizó (es igual o mayor). Se mantiene original.");
+            file.setStatus(FileStatus.COMPLETED);
+            fileObjectService.save(file);
             return;
         }
 
@@ -90,8 +91,7 @@ public class FileOptimizationService {
                         .object(optimizedKey)
                         .stream(optimizedStream, optimizedSize, -1)
                         .contentType("image/jpeg")
-                        .build()
-        );
+                        .build());
 
         file.setObjectKeyOptimized(optimizedKey);
         file.setSizeOptimized(optimizedSize);
@@ -123,91 +123,111 @@ public class FileOptimizationService {
 
     private void optimizePdf(FileObject file) throws Exception {
 
-    InputStream originalStream = minioClient.getObject(
-            GetObjectArgs.builder()
-                    .bucket(bucket)
-                    .object(file.getObjectKeyOriginal())
-                    .build()
-    );
+        InputStream originalStream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(bucket)
+                        .object(file.getObjectKeyOriginal())
+                        .build());
 
-    ByteArrayOutputStream optimizedOutput = compressPdf(originalStream);
+        ByteArrayOutputStream optimizedOutput = compressPdf(originalStream);
 
-    byte[] optimizedBytes = optimizedOutput.toByteArray();
-    long optimizedSize = optimizedBytes.length;
-    long originalSize = file.getSizeOriginal();
+        byte[] optimizedBytes = optimizedOutput.toByteArray();
+        long optimizedSize = optimizedBytes.length;
+        long originalSize = file.getSizeOriginal();
 
-    System.out.println("PDF original: " + originalSize);
-    System.out.println("PDF optimized: " + optimizedSize);
+        System.out.println("PDF original: " + originalSize);
+        System.out.println("PDF optimized: " + optimizedSize);
 
-    if (optimizedSize >= originalSize) {
-        System.out.println(" No se optimizó (es igual o mayor). Se mantiene original.");
-        return;
+        if (optimizedSize >= originalSize) {
+            System.out.println(" No se optimizó (es igual o mayor). Se mantiene original.");
+            file.setStatus(FileStatus.COMPLETED);
+            fileObjectService.save(file);
+            return;
+        }
+
+        InputStream optimizedStream = new ByteArrayInputStream(optimizedBytes);
+
+        String optimizedKey = file.getObjectKeyOriginal() + "-optimized.pdf";
+
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(bucket)
+                        .object(optimizedKey)
+                        .stream(optimizedStream, optimizedSize, -1)
+                        .contentType("application/pdf")
+                        .build());
+
+        file.setObjectKeyOptimized(optimizedKey);
+        file.setSizeOptimized(optimizedSize);
+        file.setStatus(FileStatus.OPTIMIZED);
+
+        fileObjectService.save(file);
+
+        System.out.println(" PDF OPTIMIZADO Y GUARDADO");
     }
 
-    InputStream optimizedStream = new ByteArrayInputStream(optimizedBytes);
+    private ByteArrayOutputStream compressPdf(InputStream original) throws Exception {
 
-    String optimizedKey = file.getObjectKeyOriginal() + "-optimized.pdf";
+        File inputFile = File.createTempFile("input-", ".pdf");
+        File outputFile = File.createTempFile("output-", ".pdf");
 
-    minioClient.putObject(
-            PutObjectArgs.builder()
-                    .bucket(bucket)
-                    .object(optimizedKey)
-                    .stream(optimizedStream, optimizedSize, -1)
-                    .contentType("application/pdf")
-                    .build()
-    );
+        try {
+            try (InputStream is = original;
+                    FileOutputStream fos = new FileOutputStream(inputFile)) {
 
-    file.setObjectKeyOptimized(optimizedKey);
-    file.setSizeOptimized(optimizedSize);
-    file.setStatus(FileStatus.OPTIMIZED);
+                is.transferTo(fos);
+            }
 
-    fileObjectService.save(file);
+            ProcessBuilder pb = new ProcessBuilder(
+                    "gs",
+                    "-sDEVICE=pdfwrite",
+                    "-dCompatibilityLevel=1.4",
+                    "-dPDFSETTINGS=/screen",
+                    "-dNOPAUSE",
+                    "-dQUIET",
+                    "-dBATCH",
+                    "-sOutputFile=" + outputFile.getAbsolutePath(),
+                    inputFile.getAbsolutePath());
 
-    System.out.println(" PDF OPTIMIZADO Y GUARDADO");
-}
+            pb.redirectErrorStream(true);
 
-private ByteArrayOutputStream compressPdf(InputStream original) throws Exception {
+            Process process = pb.start();
 
-    File inputFile = File.createTempFile("input-", ".pdf");
-    File outputFile = File.createTempFile("output-", ".pdf");
+            InputStream processOutput = process.getInputStream();
+            String logs = new String(processOutput.readAllBytes());
+            System.out.println("GS LOG: " + logs);
 
-    try {
-        try (FileOutputStream fos = new FileOutputStream(inputFile)) {
-            fos.write(original.readAllBytes());
+            int exitCode = process.waitFor();
+
+            if (exitCode != 0) {
+                throw new RuntimeException("Ghostscript falló con código: " + exitCode);
+            }
+
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+            try (InputStream is = new FileInputStream(outputFile)) {
+                is.transferTo(output);
+            }
+
+            return output;
+
+        } finally {
+            inputFile.delete();
+            outputFile.delete();
         }
-
-        ProcessBuilder pb = new ProcessBuilder(
-                "gs",
-                "-sDEVICE=pdfwrite",
-                "-dCompatibilityLevel=1.4",
-                "-dPDFSETTINGS=/screen", 
-                "-dNOPAUSE",
-                "-dQUIET",
-                "-dBATCH",
-                "-sOutputFile=" + outputFile.getAbsolutePath(),
-                inputFile.getAbsolutePath()
-        );
-
-        pb.redirectErrorStream(true);
-
-        Process process = pb.start();
-
-        int exitCode = process.waitFor();
-
-        if (exitCode != 0) {
-            throw new RuntimeException("Ghostscript falló con código: " + exitCode);
-        }
-
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        try (InputStream is = new FileInputStream(outputFile)) {
-            output.write(is.readAllBytes());
-        }
-
-        return output;
-
-    } finally {
-        inputFile.delete();
-        outputFile.delete();
     }
-}
+
+    @Async("fileExecutor")
+    public void optimizeAsync(FileObject file) {
+        try {
+            optimize(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            file.setStatus(FileStatus.FAILED);
+            fileObjectService.save(file);
+        }
+
+    }
+
 }

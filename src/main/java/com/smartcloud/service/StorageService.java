@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.smartcloud.entity.FileObject;
+import com.smartcloud.entity.FileStatus;
 import com.smartcloud.entity.User;
 
 import java.io.InputStream;
@@ -59,7 +60,9 @@ public class StorageService {
                 FileObject saved = fileObjectService.save(metadata);
 
                 try {
-                        fileOptimizationService.optimize(saved);
+                        saved.setStatus(FileStatus.PROCESSING);
+                        fileObjectService.save(saved);
+                        fileOptimizationService.optimizeAsync(saved);
                 } catch (Exception e) {
                         e.printStackTrace();
                 }
