@@ -13,8 +13,14 @@ public class FileResponseDto {
 
     private Long sizeOriginal;
     private Long sizeOptimized;
+    private Long finalSize;
 
     private FileStatus status;
+
+    private boolean optimized;
+    private boolean downloadable;
+
+    private Double compressionRatio;
 
     private LocalDateTime uploadedAt;
 
@@ -29,15 +35,24 @@ public class FileResponseDto {
             String contentType,
             Long sizeOriginal,
             Long sizeOptimized,
+            Long finalSize,
             FileStatus status,
+            boolean optimized,
+            boolean downloadable,
+            Double compressionRatio,
             LocalDateTime uploadedAt,
             String downloadUrl) {
+
         this.id = id;
         this.originalFilename = originalFilename;
         this.contentType = contentType;
         this.sizeOriginal = sizeOriginal;
         this.sizeOptimized = sizeOptimized;
+        this.finalSize = finalSize;
         this.status = status;
+        this.optimized = optimized;
+        this.downloadable = downloadable;
+        this.compressionRatio = compressionRatio;
         this.uploadedAt = uploadedAt;
         this.downloadUrl = downloadUrl;
     }
@@ -48,15 +63,36 @@ public class FileResponseDto {
                 ? file.getSizeOptimized()
                 : file.getSizeOriginal();
 
+        boolean optimized = file.getStatus() == FileStatus.OPTIMIZED;
+
+        boolean downloadable =
+                file.getStatus() == FileStatus.OPTIMIZED ||
+                file.getStatus() == FileStatus.COMPLETED;
+
+        Double compressionRatio = null;
+
+        if (file.getSizeOptimized() != null && file.getSizeOriginal() != null && file.getSizeOriginal() > 0) {
+            compressionRatio = 100.0 * (1 - ((double) file.getSizeOptimized() / file.getSizeOriginal()));
+        }
+
+        String downloadUrl = downloadable
+                ? "/api/files/" + file.getId() + "/download"
+                : null;
+
         return new FileResponseDto(
                 file.getId(),
                 file.getOriginalFilename(),
                 file.getContentType(),
                 file.getSizeOriginal(),
                 file.getSizeOptimized(),
+                finalSize,
                 file.getStatus(),
+                optimized,
+                downloadable,
+                compressionRatio,
                 file.getUploadedAt(),
-                "/api/files/" + file.getId() + "/download");
+                downloadUrl
+        );
     }
 
     public Long getId() {
@@ -79,8 +115,24 @@ public class FileResponseDto {
         return sizeOptimized;
     }
 
+    public Long getFinalSize() {
+        return finalSize;
+    }
+
     public FileStatus getStatus() {
         return status;
+    }
+
+    public boolean isOptimized() {
+        return optimized;
+    }
+
+    public boolean isDownloadable() {
+        return downloadable;
+    }
+
+    public Double getCompressionRatio() {
+        return compressionRatio;
     }
 
     public LocalDateTime getUploadedAt() {

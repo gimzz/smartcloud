@@ -23,7 +23,7 @@ public class User {
 
     @ManyToOne(optional = false)
     private Role role;
-
+    
     @Column(nullable = false)
     private boolean enabled = true;
 

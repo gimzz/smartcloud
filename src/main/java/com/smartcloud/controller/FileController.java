@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.smartcloud.dto.FileListItemDto;
 import com.smartcloud.dto.FileResponseDto;
+import com.smartcloud.dto.FileUploadResponseDto;
 import com.smartcloud.entity.FileObject;
 import com.smartcloud.entity.User;
 import com.smartcloud.http.HttpResponse;
@@ -46,17 +47,17 @@ public class FileController {
         }
 
         @Operation(summary = "Subir un archivo", description = "Permite a los usuarios subir un archivo al sistema. El archivo se asocia con el usuario que lo sube.")
-        @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-        public ResponseEntity<Map<String, Object>> upload(
-                        @RequestParam("file") MultipartFile file,
-                        Principal principal) throws Exception {
+      @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+public ResponseEntity<Map<String, Object>> upload(
+                @RequestParam("file") MultipartFile file,
+                Principal principal) throws Exception {
 
-                User user = userService.getEntityByUsername(principal.getName());
-                FileObject saved = storageService.upload(file, user);
+        User user = userService.getEntityByUsername(principal.getName());
+        FileObject saved = storageService.upload(file, user);
 
-                return HttpResponse.created(
-                                FileResponseDto.fromEntity(saved));
-        }
+        return HttpResponse.created(
+                        FileUploadResponseDto.fromEntity(saved));
+}
 
         @Operation(summary = "Listar archivos", description = "Obtiene una lista de archivos asociados al usuario autenticado.")
         @GetMapping
@@ -99,7 +100,7 @@ public class FileController {
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.CONTENT_DISPOSITION,
                                                 "attachment; filename=\"" + file.getOriginalFilename() + "\"")
-                                                .header(HttpHeaders.CACHE_CONTROL,"no-cache")
+                                .header(HttpHeaders.CACHE_CONTROL, "no-cache")
                                 .contentType(MediaType.parseMediaType(file.getContentType()))
                                 .contentLength(size)
                                 .body(new InputStreamResource(is));
@@ -123,4 +124,24 @@ public class FileController {
 
                 return HttpResponse.noContent();
         }
+
+        @Operation(summary = "Obtener archivo por ID", description = "Devuelve la información completa del archivo incluyendo estado de procesamiento y disponibilidad de descarga.")
+        @GetMapping("/{id}")
+        public ResponseEntity<Map<String, Object>> getById(
+                        @PathVariable Long id,
+                        Principal principal) {
+
+                User user = userService.getEntityByUsername(principal.getName());
+
+                FileObject file = fileObjectService.getById(id);
+
+                if (!file.getOwner().getId().equals(user.getId())) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+                }
+
+                FileResponseDto response = FileResponseDto.fromEntity(file);
+
+                return HttpResponse.ok(response);
+        }
+
 }
